@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pemburu Konjungsi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: satu kolom ala game kuis kelas. Beranda, soal dengan empat blok warna, layar hasil dengan papan peringkat, lalu podium. */
+:root{
+  --bg:#2d0a57; --bg2:#52199c; --panel:#ffffff; --ink:#2a1253; --sub:#6e5a94; --line:#e4daf2;
+  --red:#e21b3c; --blue:#1368ce; --yellow:#c98a00; --green:#1f8a36;
+  --gold:#ffc83d; --good:#1fa65a; --good2:#0f7a3f; --bad:#e8455f; --bad2:#a91d3a; --warn:#e88a1a; --warn2:#a85a06;
+  --accent:#a35cff; --me:#fff3c4;
+  --display:'Baloo 2','Trebuchet MS',system-ui,sans-serif;
+  --body:'Nunito',system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{min-height:100%}
+body{
+  margin:0; background-color:var(--bg);
+  background-image:radial-gradient(circle at 15% 0%,var(--bg2) 0%,transparent 55%),radial-gradient(circle at 100% 100%,#3c0f7a 0%,transparent 50%);
+  background-attachment:fixed;
+  color:#fff; font-family:var(--body); font-weight:700; font-size:16px;
+  padding-inline:16px; padding-block:16px 36px;
+}
+*{box-sizing:border-box}
+button{font-family:inherit; font-weight:800; cursor:pointer; border:0; color:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold); outline-offset:2px}
+.app{max-width:520px; margin:0 auto}
+.white{background:var(--panel); color:var(--ink); border-radius:20px; padding:16px; min-width:0}
+
+/* beranda */
+.brand{text-align:center; padding-block:10px 18px}
+.logo{display:inline-grid; place-items:center; width:72px; height:72px; border-radius:22px; background:var(--gold); color:var(--ink); font-size:2.2rem; box-shadow:0 6px 0 #c9971a; transform:rotate(-6deg)}
+h1{font-family:var(--display); font-size:2.3rem; line-height:1.05; margin:14px 0 6px; text-wrap:balance}
+.tag{margin:0; color:#d9c6f5; font-weight:700}
+.lbl{display:block; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--sub); margin-bottom:8px}
+#nameIn{width:100%; font:inherit; font-weight:800; font-size:1.05rem; padding:12px 14px; border-radius:12px; border:2px solid var(--line); background:#faf7ff; color:var(--ink)}
+.avs{display:grid; grid-template-columns:repeat(8,1fr); gap:6px; margin-top:12px}
+.av{aspect-ratio:1; border-radius:12px; background:#f1eafb; font-size:1.35rem; display:grid; place-items:center; padding:0; border:2px solid transparent}
+.av[aria-pressed="true"]{border-color:var(--accent); background:#e6d7ff}
+.hd{font-family:var(--display); font-size:1.15rem; margin:20px 2px 10px}
+.lv{display:grid; grid-template-columns:56px 1fr; align-items:center; gap:12px; width:100%; text-align:left; padding:12px 14px; border-radius:16px; margin-bottom:10px; color:#fff; box-shadow:0 5px 0 rgba(0,0,0,.28)}
+.lv:active{transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.28)}
+.lv .ic{width:56px; height:56px; border-radius:14px; background:rgba(255,255,255,.2); display:grid; place-items:center; font-size:1.6rem}
+.lv b{display:block; font-family:var(--display); font-size:1.2rem}
+.lv small{display:block; font-weight:700; opacity:.92; font-size:.85rem; line-height:1.35}
+.lv.easy{background:var(--green)} .lv.med{background:var(--blue)} .lv.hard{background:var(--red)} .lv.mix{background:#7a2fd0}
+
+/* permainan */
+.top{display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; margin-bottom:10px}
+.pill{background:rgba(255,255,255,.14); border-radius:999px; padding:8px 14px; font-weight:800; width:max-content; font-variant-numeric:tabular-nums}
+.top .pill:last-child{justify-self:end; background:var(--gold); color:var(--ink)}
+.ring{position:relative; width:64px; height:64px}
+.ring svg{width:100%; height:100%; transform:rotate(-90deg)}
+.ring circle{fill:none; stroke-width:6}
+.ring .rb{stroke:rgba(255,255,255,.2)}
+.ring .rf{stroke:var(--gold); stroke-linecap:round; stroke-dasharray:163.36; stroke-dashoffset:0}
+.ring.low .rf{stroke:#ff6b81}
+.ring span{position:absolute; inset:0; display:grid; place-items:center; font-family:var(--display); font-size:1.35rem; font-variant-numeric:tabular-nums}
+.chips{display:flex; gap:8px; min-height:30px; align-items:center; margin-bottom:10px; flex-wrap:wrap}
+.chip{background:#ff8a3d; color:#2a1253; border-radius:999px; padding:4px 12px; font-size:.85rem; font-weight:800}
+.chip.dbl{background:var(--accent); color:#fff}
+.qcard{margin-bottom:14px; padding:18px}
+.qtag{font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--sub); margin-bottom:8px}
+.qtext{font-size:1.2rem; line-height:1.5; font-weight:800}
+.qtext b{background:#ffe9a8; border-radius:6px; padding:0 5px}
+.answers{display:grid; gap:12px; margin-bottom:14px}
+.answers.c2{grid-template-columns:1fr 1fr}
+.ans{display:flex; align-items:center; gap:12px; min-width:0; min-height:68px; padding:12px 14px; border-radius:14px; text-align:left; color:#fff; font-size:1.02rem; line-height:1.35; box-shadow:0 5px 0 rgba(0,0,0,.3); transition:transform .08s, opacity .2s}
+.answers.c2 .ans{flex-direction:column; justify-content:center; text-align:center; min-height:96px; font-size:1.1rem}
+.ans:active:not(:disabled){transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.ans .sh{font-size:1.4rem; flex:none; width:28px; text-align:center}
+.ans .tx{min-width:0; overflow-wrap:anywhere}
+.k0{background:var(--red)} .k1{background:var(--blue)} .k2{background:var(--yellow)} .k3{background:var(--green)}
+.ans:disabled{cursor:default}
+.ans.gone{opacity:.2}
+.ans.right{outline:4px solid #fff; outline-offset:2px}
+.ans.wrongc{opacity:.55}
+.pups{display:flex; gap:10px; flex-wrap:wrap; align-items:center; min-height:48px}
+.pup{background:rgba(255,255,255,.16); border-radius:14px; padding:10px 14px; font-size:.92rem; display:flex; gap:8px; align-items:center}
+.pup:hover{background:rgba(255,255,255,.26)}
+.pup:disabled{opacity:.4}
+.hint{color:#cdb8ee; font-size:.85rem; font-weight:700}
+.exit{display:block; margin:18px auto 0; background:none; color:#cdb8ee; text-decoration:underline; padding:6px}
+
+/* hasil tiap soal */
+#fb{position:fixed; inset:0; z-index:20; overflow:auto; padding-block:calc(18px + env(safe-area-inset-top,0px)) calc(18px + env(safe-area-inset-bottom,0px)); padding-inline:16px}
+#fb.good{background:linear-gradient(180deg,var(--good) 0%,var(--good2) 100%)}
+#fb.bad{background:linear-gradient(180deg,var(--bad) 0%,var(--bad2) 100%)}
+#fb.time{background:linear-gradient(180deg,var(--warn) 0%,var(--warn2) 100%)}
+.fbw{max-width:520px; margin:0 auto; display:grid; gap:14px}
+.fbh{text-align:center}
+.fbh .em{font-size:3.6rem; line-height:1}
+.fbh h2{font-family:var(--display); font-size:2rem; margin:6px 0 8px}
+.gain{display:inline-block; background:rgba(0,0,0,.25); border-radius:999px; padding:6px 18px; font-family:var(--display); font-size:1.4rem}
+.fbh .sub2{margin:8px 0 0; font-weight:800}
+.exp{font-size:.98rem; line-height:1.5}
+.exp b{display:block; font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--sub); margin-bottom:4px}
+.board{list-style:none; margin:0; padding:0; display:grid; gap:6px}
+.row{display:grid; grid-template-columns:30px 34px 1fr auto auto; align-items:center; gap:8px; padding:8px 10px; border-radius:12px; background:#f6f1fd; color:var(--ink)}
+.row.me{background:var(--me); outline:2px solid var(--gold)}
+.row .rk{font-family:var(--display); font-size:1.1rem; text-align:center}
+.row .nm{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.row .pt{font-variant-numeric:tabular-nums; font-weight:800}
+.row .ar{font-size:.8rem; width:22px; text-align:right}
+.up{color:#14803f} .dn{color:#c0304a}
+.next{position:sticky; bottom:0; width:100%; background:#fff; color:var(--ink); padding:15px; border-radius:16px; font-size:1.1rem; box-shadow:0 5px 0 rgba(0,0,0,.28)}
+
+/* akhir */
+.endh{text-align:center; padding-block:6px 14px}
+.endh h2{font-family:var(--display); font-size:2rem; margin:6px 0}
+.endh p{margin:0; color:#d9c6f5}
+.pod{display:grid; grid-template-columns:repeat(3,1fr); align-items:end; gap:8px; margin:6px 0 16px}
+.pc{text-align:center; min-width:0}
+.pc .pa{font-size:2rem}
+.pc .pn{font-size:.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pc .ps{font-size:.8rem; color:#d9c6f5; font-variant-numeric:tabular-nums}
+.pc .bar{margin-top:6px; border-radius:12px 12px 0 0; display:grid; place-items:start center; padding-top:8px; font-family:var(--display); font-size:1.6rem; color:var(--ink)}
+.pc.p1 .bar{height:130px; background:var(--gold)}
+.pc.p2 .bar{height:96px; background:#d6d9e6}
+.pc.p3 .bar{height:72px; background:#e6a56b}
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px}
+.st{background:rgba(255,255,255,.14); border-radius:14px; padding:12px 8px; text-align:center; min-width:0}
+.st b{display:block; font-family:var(--display); font-size:1.5rem; font-variant-numeric:tabular-nums}
+.st span{font-size:.75rem; color:#d9c6f5}
+.btns{display:grid; gap:10px; margin-top:16px}
+.btn{padding:15px; border-radius:16px; font-size:1.05rem; box-shadow:0 5px 0 rgba(0,0,0,.28)}
+.btn.main{background:var(--gold); color:var(--ink)}
+.btn.alt{background:rgba(255,255,255,.18); color:#fff}
+#cf{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:30}
+@media (prefers-reduced-motion:reduce){.ans,.lv{transition:none}}
+@media (max-width:360px){.avs{grid-template-columns:repeat(4,1fr)}}
+</style>
+
+</head>
+<body>
+<main class="app">
+  <section id="home">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">🏹</div>
+      <h1>Pemburu Konjungsi</h1>
+      <p class="tag">Jawab cepat, kejar streak, naik peringkat.</p>
+    </div>
+    <div class="white">
+      <label class="lbl" for="nameIn">Nama pemain</label>
+      <input id="nameIn" type="text" maxlength="14" placeholder="Tulis namamu" autocomplete="off">
+      <div class="avs" id="avs" role="group" aria-label="Pilih avatar"></div>
+    </div>
+    <h2 class="hd">Pilih level</h2>
+    <button class="lv easy" data-lv="easy"><span class="ic">🌱</span><span><b>Mudah</b><small>Intrakalimat atau antarkalimat? · 6 soal · 20 detik</small></span></button>
+    <button class="lv med" data-lv="med"><span class="ic">🧭</span><span><b>Sedang</b><small>Pilih konjungsi yang tepat · 6 soal · 15 detik</small></span></button>
+    <button class="lv hard" data-lv="hard"><span class="ic">🔥</span><span><b>Sulit</b><small>Cari kalimat yang benar · 6 soal · 12 detik</small></span></button>
+    <button class="lv mix" data-lv="mix"><span class="ic">🏆</span><span><b>Semua level</b><small>Dari mudah ke sulit · 18 soal</small></span></button>
+  </section>
+
+  <section id="game" hidden>
+    <div class="top">
+      <div class="pill" id="qNo">Soal 1/6</div>
+      <div class="ring" id="ring"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="rb" cx="32" cy="32" r="26"/><circle class="rf" id="rf" cx="32" cy="32" r="26"/></svg><span id="rt">20</span></div>
+      <div class="pill" id="sc">0</div>
+    </div>
+    <div class="chips"><span class="chip" id="stk" hidden></span><span class="chip dbl" id="dbl" hidden>2x poin aktif</span></div>
+    <div class="white qcard"><div class="qtag" id="qTag"></div><div class="qtext" id="qText"></div></div>
+    <div class="answers" id="ans"></div>
+    <div class="pups" id="pups"></div>
+    <button class="exit" id="exit">Keluar ke menu</button>
+  </section>
+
+  <section id="end" hidden></section>
+</main>
+<div id="fb" hidden></div>
+<canvas id="cf" aria-hidden="true"></canvas>
+
+<script>
+(function(){
+var $=function(s){return document.querySelector(s)};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+var shuffle=function(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a};
+var pick=function(a){return a[Math.floor(Math.random()*a.length)]};
+
+var BANK={
+ easy:{time:20,tag:'Intrakalimat atau antarkalimat?',q:[
+  {q:'"Ia rajin belajar <b>sehingga</b> nilainya bagus." Termasuk jenis apa?',opts:['Intrakalimat','Antarkalimat'],ans:0,exp:'Tidak ada titik sebelum "sehingga", jadi masih satu kalimat (intrakalimat).'},
+  {q:'"Ia rajin belajar. <b>Oleh karena itu</b>, nilainya bagus." Termasuk jenis apa?',opts:['Intrakalimat','Antarkalimat'],ans:1,exp:'Ada titik sebelum konjungsi, menandai kalimat baru (antarkalimat).'},
+  {q:'"Ia lelah, <b>tetapi</b> tetap bekerja." Termasuk jenis apa?',opts:['Antarkalimat','Intrakalimat'],ans:1,exp:'"tetapi" menghubungkan dua klausa setara dalam satu kalimat (koordinatif).'},
+  {q:'"Hujan deras. <b>Akibatnya</b>, banjir." Termasuk jenis apa?',opts:['Intrakalimat','Antarkalimat'],ans:1,exp:'Diawali huruf kapital setelah titik, jadi konjungsi antarkalimat.'},
+  {q:'"Ia bukan malas, <b>melainkan</b> sakit." Termasuk jenis apa?',opts:['Antarkalimat','Intrakalimat'],ans:1,exp:'"melainkan" mengoreksi dalam satu kalimat yang sama (koordinatif).'},
+  {q:'"Sudah diperingatkan. <b>Meskipun demikian</b>, ia mengulang." Termasuk jenis apa?',opts:['Intrakalimat','Antarkalimat'],ans:1,exp:'Ada titik sebelum "meskipun demikian", jadi kalimat baru.'}
+ ]},
+ med:{time:15,tag:'Lengkapi dengan konjungsi yang tepat',q:[
+  {q:'Ia tidak masuk sekolah ___ sakit.',opts:['karena','agar','sehingga'],ans:0,exp:'"karena" tepat sebab sakit adalah sebab, bukan tujuan atau akibat.'},
+  {q:'Hujan deras. ___, pertandingan ditunda.',opts:['Sehingga','Akibatnya','Agar'],ans:1,exp:'Kalimat baru (setelah titik) butuh konjungsi antarkalimat: "Akibatnya".'},
+  {q:'Budi pandai. ___, ia kurang rajin.',opts:['Tetapi','Namun','Sedangkan'],ans:1,exp:'Kalimat baru butuh konjungsi antarkalimat: "Namun". "Tetapi" dan "sedangkan" bersifat intrakalimat.'},
+  {q:'Ia belajar giat ___ lulus ujian.',opts:['karena','agar','sehingga'],ans:1,exp:'"agar" menyatakan tujuan, bukan sebab atau akibat.'},
+  {q:'Ia tidak hanya pintar, ___ juga rajin.',opts:['melainkan','tetapi','sehingga'],ans:1,exp:'Pasangan baku: "tidak hanya ... tetapi juga". "Melainkan" berpasangan dengan "bukan".'},
+  {q:'Sampah sulit terurai. ___, penggunaannya perlu dikurangi.',opts:['Namun','Oleh karena itu','Misalnya'],ans:1,exp:'Hubungannya akibat, jadi "Oleh karena itu" paling tepat.'}
+ ]},
+ hard:{time:12,tag:'Pilih kalimat yang benar',q:[
+  {q:'Mana kalimat yang <b>benar</b>?',opts:['Meskipun hujan, tetapi kami berangkat.','Meskipun hujan, kami berangkat.','Kami berangkat, meskipun tetapi hujan.'],ans:1,exp:'"Meskipun" dan "tetapi" sama-sama menyatakan pertentangan. Dipakai bersamaan jadi pleonasme.'},
+  {q:'Mana kalimat yang <b>benar</b>?',opts:['Ia gagal. Karena tidak belajar.','Ia gagal karena tidak belajar.','Karena, ia gagal tidak belajar.'],ans:1,exp:'"Karena tidak belajar" adalah anak kalimat dan tidak boleh berdiri sendiri setelah titik.'},
+  {q:'Mana kalimat yang <b>benar</b>?',opts:['Karena lelah ia tidur siang.','Karena lelah, ia tidur siang.','Karena, lelah ia tidur siang.'],ans:1,exp:'Anak kalimat di depan induk kalimat diberi koma setelahnya untuk menandai batas.'},
+  {q:'Mana kalimat yang <b>benar</b>?',opts:['Ia sakit. Sehingga tidak masuk kerja.','Ia sakit sehingga tidak masuk kerja.','Ia sakit, sehingga, tidak masuk kerja.'],ans:1,exp:'"Sehingga" konjungsi intrakalimat, tidak boleh mengawali kalimat baru setelah titik.'},
+  {q:'Mana kalimat yang <b>benar</b>?',opts:['Agar supaya lulus, ia belajar giat.','Agar lulus, ia belajar giat.','Ia belajar giat, agar supaya lulus.'],ans:1,exp:'"Agar" dan "supaya" sama-sama menyatakan tujuan. Pakai salah satu saja.'},
+  {q:'Mana kalimat yang <b>benar</b>?',opts:['Ia rajin, oleh karena itu nilainya bagus.','Ia rajin. Oleh karena itu, nilainya bagus.','Ia rajin oleh karena itu, nilainya bagus.'],ans:1,exp:'"Oleh karena itu" konjungsi antarkalimat: didahului titik dan diikuti koma.'}
+ ]}
+};
+var AVS=['🦊','🐼','🐸','🦁','🐙','🐧','🦄','🐯'];
+var BOTN=['Raka','Sinta','Bima','Dewi','Ayu','Joko','Maya','Dimas'];
+var SH=['▲','◆','●','■'];
+var PU={time:{ic:'⏱',nm:'+10 detik'},x2:{ic:'✨',nm:'2x poin'},fifty:{ic:'🎯',nm:'Buang opsi salah'}};
+var OKW=[['🎯','Tepat sasaran!'],['🔥','Mantap!'],['🤩','Keren banget!'],['🏹','Bidikanmu akurat!'],['😎','Tata bahasamu juara!']];
+var NOW=[['😅','Hampir!'],['🫠','Yah, kurang tepat'],['💪','Tidak apa, ayo bangkit!']];
+
+var S=null, me={name:'',av:AVS[0]};
+try{var sv=JSON.parse(localStorage.getItem('pk-me')||'null'); if(sv){me.name=sv.name||'';me.av=sv.av||AVS[0]}}catch(e){}
+
+/* beranda */
+var avBox=$('#avs');
+function drawAvs(){
+  avBox.innerHTML='';
+  AVS.forEach(function(a){
+    var b=document.createElement('button');
+    b.className='av'; b.type='button'; b.textContent=a; b.setAttribute('aria-label','Avatar '+a);
+    b.setAttribute('aria-pressed',a===me.av?'true':'false');
+    b.onclick=function(){me.av=a;drawAvs()};
+    avBox.appendChild(b);
+  });
+}
+drawAvs();
+$('#nameIn').value=me.name;
+document.querySelectorAll('.lv').forEach(function(b){b.onclick=function(){start(b.getAttribute('data-lv'))}});
+
+function show(id){['home','game','end'].forEach(function(s){$('#'+s).hidden=(s!==id)});$('#fb').hidden=true;window.scrollTo(0,0)}
+
+/* mulai */
+function start(k){
+  me.name=($('#nameIn').value||'').trim()||'Kamu';
+  try{localStorage.setItem('pk-me',JSON.stringify({name:$('#nameIn').value.trim(),av:me.av}))}catch(e){}
+  var items=[];
+  (k==='mix'?['easy','med','hard']:[k]).forEach(function(l){
+    shuffle(BANK[l].q).forEach(function(q){items.push({q:q.q,opts:q.opts,ans:q.ans,exp:q.exp,t:BANK[l].time,lv:l,tag:BANK[l].tag})});
+  });
+  var bn=shuffle(BOTN).slice(0,5), ba=shuffle(AVS);
+  S={k:k,items:items,i:0,score:0,streak:0,best:0,right:0,double:false,pups:[],locked:true,
+     bots:bn.map(function(n,i){return {n:n,a:ba[i],s:0,acc:0.55+Math.random()*0.35,sp:0.3+Math.random()*0.7}}),
+     timer:null,end:0,total:0,cur:null,prevRank:0};
+  S.prevRank=rankOf();
+  show('game'); renderQ();
+}
+
+function board(){
+  var a=[{n:me.name,a:me.av,s:S.score,me:1}].concat(S.bots.map(function(b){return {n:b.n,a:b.a,s:b.s}}));
+  a.sort(function(x,y){return (y.s-x.s)||((x.me?1:0)-(y.me?1:0))});
+  return a;
+}
+function rankOf(){var b=board();for(var i=0;i<b.length;i++){if(b[i].me)return i+1}return b.length}
+
+/* soal */
+var C=2*Math.PI*26;
+function renderQ(){
+  var it=S.items[S.i]; S.cur=it; S.locked=false;
+  var opts=shuffle(it.opts.map(function(t,i){return {t:t,ok:i===it.ans}}));
+  S.opts=opts;
+  $('#qNo').textContent='Soal '+(S.i+1)+'/'+S.items.length;
+  $('#sc').textContent=S.score;
+  $('#qTag').textContent=it.tag;
+  $('#qText').innerHTML=it.q;
+  var box=$('#ans'); box.innerHTML='';
+  box.className='answers'+(it.lv==='easy'?' c2':'');
+  opts.forEach(function(o,i){
+    var b=document.createElement('button');
+    b.type='button'; b.className='ans k'+i;
+    b.innerHTML='<span class="sh" aria-hidden="true">'+SH[i]+'</span><span class="tx">'+esc(o.t)+'</span>';
+    b.onclick=function(){answer(i)};
+    box.appendChild(b);
+  });
+  updChips(); drawPups();
+  S.total=it.t; S.end=Date.now()+it.t*1000;
+  clearInterval(S.timer); tick();
+  S.timer=setInterval(tick,100);
+}
+function tick(){
+  var rem=Math.max(0,(S.end-Date.now())/1000);
+  S.rem=rem;
+  $('#rf').style.strokeDashoffset=String(C*(1-Math.min(1,rem/S.total)));
+  $('#rt').textContent=Math.ceil(rem);
+  $('#ring').className='ring'+(rem<=5?' low':'');
+  if(rem<=0){clearInterval(S.timer);answer(-1)}
+}
+function updChips(){
+  var s=$('#stk');
+  if(S.streak>=2){s.hidden=false;s.textContent='🔥 Streak '+S.streak}else{s.hidden=true}
+  $('#dbl').hidden=!S.double;
+}
+function drawPups(){
+  var box=$('#pups'); box.innerHTML='';
+  if(!S.pups.length){
+    var h=document.createElement('span'); h.className='hint';
+    h.textContent='Jawab benar 3 kali beruntun untuk dapat power-up.'; box.appendChild(h); return;
+  }
+  S.pups.forEach(function(p,i){
+    var b=document.createElement('button'); b.type='button'; b.className='pup';
+    b.innerHTML='<span aria-hidden="true">'+PU[p].ic+'</span><span>'+PU[p].nm+'</span>';
+    b.onclick=function(){usePU(i)};
+    box.appendChild(b);
+  });
+}
+function usePU(i){
+  if(S.locked) return;
+  var p=S.pups[i];
+  if(p==='time'){S.end+=10000; S.total=Math.max(S.total,(S.end-Date.now())/1000)}
+  else if(p==='x2'){S.double=true}
+  else if(p==='fifty'){
+    var btns=document.querySelectorAll('.ans'), wrong=[];
+    S.opts.forEach(function(o,k){if(!o.ok&&!btns[k].classList.contains('gone'))wrong.push(k)});
+    var n=S.opts.length>=4?2:1;
+    shuffle(wrong).slice(0,n).forEach(function(k){btns[k].classList.add('gone');btns[k].disabled=true});
+  }
+  S.pups.splice(i,1); updChips(); drawPups(); tick();
+}
+
+/* jawab */
+function answer(idx){
+  if(S.locked) return; S.locked=true; clearInterval(S.timer);
+  var timeout=idx<0, ok=!timeout&&S.opts[idx].ok, pts=0;
+  var btns=document.querySelectorAll('.ans');
+  S.opts.forEach(function(o,k){btns[k].disabled=true; if(o.ok)btns[k].classList.add('right'); else if(k!==idx)btns[k].classList.add('gone')});
+  if(idx>=0&&!ok) btns[idx].classList.add('wrongc');
+  var gotPU=null;
+  if(ok){
+    S.streak++; S.right++; S.best=Math.max(S.best,S.streak);
+    pts=500+Math.round(400*Math.min(1,S.rem/S.total))+Math.min(S.streak-1,5)*50;
+    if(S.double){pts*=2}
+    S.score+=pts;
+    if(S.streak%3===0&&S.pups.length<3){
+      gotPU=pick(S.cur.lv==='easy'?['time','x2']:['time','x2','fifty']); S.pups.push(gotPU);
+    }
+  }else{S.streak=0}
+  S.double=false;
+  S.bots.forEach(function(b){if(Math.random()<b.acc)b.s+=500+Math.round(Math.random()*400*b.sp)});
+  $('#sc').textContent=S.score; updChips();
+  setTimeout(function(){showFB(ok,timeout,pts,gotPU)},850);
+}
+
+function rowsHTML(){
+  var b=board(), h='';
+  b.forEach(function(p,i){
+    var ar='';
+    if(p.me){var d=S.prevRank-(i+1); ar=d>0?'<span class="ar up">▲'+d+'</span>':d<0?'<span class="ar dn">▼'+(-d)+'</span>':'<span class="ar"></span>'}
+    else ar='<span class="ar"></span>';
+    h+='<li class="row'+(p.me?' me':'')+'"><span class="rk">'+(i+1)+'</span><span aria-hidden="true">'+p.a+'</span><span class="nm">'+esc(p.n)+'</span><span class="pt">'+p.s+'</span>'+ar+'</li>';
+  });
+  return h;
+}
+function showFB(ok,timeout,pts,gotPU){
+  var fb=$('#fb'), r;
+  if(ok){r=pick(OKW)}else if(timeout){r=['⏰','Waktu habis!']}else{r=pick(NOW)}
+  fb.className=ok?'good':timeout?'time':'bad';
+  var sub='';
+  if(ok&&S.streak>=2) sub='🔥 Streak '+S.streak+' beruntun';
+  if(gotPU) sub+=(sub?' · ':'')+'Power-up baru: '+PU[gotPU].ic+' '+PU[gotPU].nm;
+  var last=S.i>=S.items.length-1;
+  fb.innerHTML='<div class="fbw">'+
+    '<div class="fbh"><div class="em" aria-hidden="true">'+r[0]+'</div><h2>'+r[1]+'</h2>'+
+    '<span class="gain">'+(ok?'+'+pts:'+0')+' poin</span>'+(sub?'<p class="sub2">'+sub+'</p>':'')+'</div>'+
+    '<div class="white exp"><b>Penjelasan</b>'+esc(S.cur.exp)+'</div>'+
+    '<div class="white"><ol class="board">'+rowsHTML()+'</ol></div>'+
+    '<button class="next" id="nx" type="button">'+(last?'Lihat hasil':'Lanjut')+'</button></div>';
+  S.prevRank=rankOf();
+  fb.hidden=false; fb.scrollTop=0;
+  $('#nx').onclick=function(){fb.hidden=true;S.i++;if(S.i>=S.items.length)showEnd();else renderQ()};
+  $('#nx').focus();
+}
+
+/* akhir */
+function showEnd(){
+  var b=board(), rk=0; b.forEach(function(p,i){if(p.me)rk=i+1});
+  var acc=Math.round(100*S.right/S.items.length);
+  var msg=rk===1?'Juara 1! Kamu paham betul konjungsi.':rk<=3?'Masuk podium! Sedikit lagi jadi juara.':'Terus berlatih, peringkat berikutnya milikmu.';
+  function pc(p,cls,n){return p?'<div class="pc '+cls+'"><div class="pa" aria-hidden="true">'+p.a+'</div><div class="pn">'+esc(p.n)+'</div><div class="ps">'+p.s+'</div><div class="bar">'+n+'</div></div>':'<div></div>'}
+  var rows='';
+  b.forEach(function(p,i){rows+='<li class="row'+(p.me?' me':'')+'"><span class="rk">'+(i+1)+'</span><span aria-hidden="true">'+p.a+'</span><span class="nm">'+esc(p.n)+'</span><span class="pt">'+p.s+'</span><span class="ar"></span></li>'});
+  $('#end').innerHTML='<div class="endh"><div style="font-size:3rem" aria-hidden="true">'+(rk===1?'🏆':rk<=3?'🥈':'🎖️')+'</div><h2>Peringkat #'+rk+'</h2><p>'+msg+'</p></div>'+
+    '<div class="pod">'+pc(b[1],'p2',2)+pc(b[0],'p1',1)+pc(b[2],'p3',3)+'</div>'+
+    '<div class="stats"><div class="st"><b>'+S.score+'</b><span>Skor</span></div><div class="st"><b>'+acc+'%</b><span>Akurasi</span></div><div class="st"><b>'+S.best+'</b><span>Streak terbaik</span></div></div>'+
+    '<div class="white"><ol class="board">'+rows+'</ol></div>'+
+    '<div class="btns"><button class="btn main" id="again" type="button">Main lagi</button><button class="btn alt" id="menu" type="button">Pilih level</button></div>';
+  show('end');
+  $('#again').onclick=function(){start(S.k)};
+  $('#menu').onclick=function(){show('home')};
+  if(rk<=3) confetti();
+}
+
+$('#exit').onclick=function(){if(S)clearInterval(S.timer);show('home')};
+
+/* konfeti */
+function confetti(){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var cv=$('#cf'), cx=cv.getContext('2d'); cv.width=innerWidth; cv.height=innerHeight;
+  var cols=['#ffc83d','#e21b3c','#1368ce','#26b24a','#a35cff'], ps=[];
+  for(var i=0;i<110;i++) ps.push({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.5,w:6+Math.random()*6,h:8+Math.random()*8,vy:2+Math.random()*3,vx:-1+Math.random()*2,r:Math.random()*6,vr:-.2+Math.random()*.4,c:pick(cols)});
+  var t0=Date.now();
+  (function f(){
+    cx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.w/2,-p.h/2,p.w,p.h);cx.restore()});
+    if(Date.now()-t0<3200) requestAnimationFrame(f); else cx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+})();
+</script>
+</body>
+</html>
