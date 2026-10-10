@@ -1,0 +1,2 @@
+# Novia-Kurniasari-
+Gamekonjungsi
